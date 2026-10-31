@@ -31,7 +31,7 @@ jobs:
           BASE_URL: ${{ steps.pages.outputs.base_url }}
         run: |
           mkdir -p _site
-          cp index.html .nojekyll _site/
+          cp index.html _site/
           cp -R images _site/images
           cp -R share _site/share
           sed -i "s|SITE_URL|${BASE_URL%/}/|g; s|OG_IMAGE_URL|${BASE_URL%/}/images/pins-classic.png|g" _site/index.html
