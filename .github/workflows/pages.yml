@@ -1,0 +1,48 @@
+name: Publish Mądraverse Merch to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pobierz pliki strony
+        uses: actions/checkout@v6
+      - name: Przygotuj GitHub Pages
+        id: pages
+        uses: actions/configure-pages@v5
+      - name: Przygotuj pliki do publikacji
+        env:
+          BASE_URL: ${{ steps.pages.outputs.base_url }}
+        run: |
+          mkdir -p _site
+          cp index.html .nojekyll _site/
+          cp -R images _site/images
+          cp -R share _site/share
+          sed -i "s|SITE_URL|${BASE_URL%/}/|g; s|OG_IMAGE_URL|${BASE_URL%/}/images/pins-classic.png|g" _site/index.html
+          for page in _site/share/*/index.html; do
+            sed -i "s|@@BASE_URL@@|${BASE_URL%/}|g" "$page"
+          done
+      - name: Wgraj pliki GitHub Pages
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Opublikuj stronę
+        id: deployment
+        uses: actions/deploy-pages@v4
+
